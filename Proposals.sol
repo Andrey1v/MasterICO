@@ -1,33 +1,34 @@
 pragma solidity ^0.4.24;
 
 
-// import "./dependencies/ERC20.sol";
-// import "./dependencies/Ownable.sol";
-// import "./dependencies/SafeMath.sol";
+// import "./ERC20.sol";
+// import "./Ownable.sol";
+// import "./SafeMath.sol";
 
-import "./Crowdsale.sol";
+import "./INV.sol";
 
 
 contract Governance is INV {
-    
+
     using SafeMath for uint;
-    
+
     uint constant public ThresholdPercent = 10;
+    uint constant public MinimumDuration = 1 weeks;
 
     uint canceled = 0;
     mapping (uint => address) cancelVoteIdToAddress;
     uint cancelVotesCounter;
     mapping (address => uint8) addressToCancelVote;
-    
+
     struct Document {
         uint date;
         string url;
         uint documentHash;
     }
-    
+
     struct Proposal {
         string name;
-        
+
         uint openingTime;
         uint durationTime;
         uint requestedAmount;
@@ -63,7 +64,7 @@ contract Governance is INV {
         require(balanceOf(msg.sender) != 0);
         _;
     }
-    
+
     function checkProposalExistence(string _name) public view returns(bool exist) {
         for (uint i = 0; i < proposals.length; i = i.add(1)) {
             if (keccak256(_name) == keccak256(proposals[i].name)) {
@@ -72,7 +73,7 @@ contract Governance is INV {
         }
         return false;
     }
-    
+
     function addProposal(
         string _name,
         uint _durationTime,
@@ -81,7 +82,8 @@ contract Governance is INV {
         uint _documentHash) public onlyOwner notCanceled
     {
         require(!checkProposalExistence(_name));
-        
+        require(_durationTime >= MinimumDuration);
+
         uint proposalId = proposals.push(Proposal(_name, now, _durationTime, _requestedAmount, 0, 0, 0)) - 1;
         addOverview(proposalId, _url, _documentHash);
     }
@@ -115,18 +117,18 @@ contract Governance is INV {
         url = proposals[_proposalId].reports[_reportId].url;
         documentHash = proposals[_proposalId].reports[_reportId].documentHash;
     }
-    
+
     function vote(uint _proposalId, uint8 _vote) public hasBalance correctVote(_vote) notCanceled {
         require(now <= proposals[_proposalId].openingTime + proposals[_proposalId].durationTime);
-        
+
         if (proposals[_proposalId].addressToVote[msg.sender] == NoneVote) {
             proposals[_proposalId].voteIdToAddress[proposals[_proposalId].votesCounter] = msg.sender;
             proposals[_proposalId].votesCounter = proposals[_proposalId].votesCounter.add(1);
         }
-        
+
         proposals[_proposalId].addressToVote[msg.sender] = _vote;
     }
-    
+
     function currentProposalResults(uint _proposalId) public view returns(uint yes, uint no, uint abstain) {
         for (uint i = 0; i < proposals[_proposalId].votesCounter; i = i.add(1)) {
             uint currentVote = proposals[_proposalId].addressToVote[proposals[_proposalId].voteIdToAddress[i]];
@@ -139,13 +141,13 @@ contract Governance is INV {
             }
         }
     }
-    
+
     function proposalResult(uint _proposalId) public view returns(bool success) {
         uint yes;
         uint no;
         uint abstain;
         (yes, no, abstain) = currentProposalResults(_proposalId);
-        
+
         if (yes - no > (getTotalSupply() - abstain).mul(ThresholdPercent).div(100)) {
             return true;
         }
@@ -156,7 +158,7 @@ contract Governance is INV {
         require(proposals[_proposalId].openingTime + proposals[_proposalId].durationTime <= now);
         require(proposalResult(_proposalId));
         require(address(this).balance >= proposals[_proposalId].requestedAmount);
-        
+
         owner.transfer(proposals[_proposalId].requestedAmount);
     }
 
@@ -165,7 +167,7 @@ contract Governance is INV {
             cancelVoteIdToAddress[cancelVotesCounter] = msg.sender;
             cancelVotesCounter = cancelVotesCounter.add(1);
         }
-        
+
         addressToCancelVote[msg.sender] = _cancelVote;
     }
 
