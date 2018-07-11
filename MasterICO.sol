@@ -8,14 +8,20 @@ pragma solidity ^0.4.24;
 import "./INV.sol";
 
 
-contract Governance is INV {
+contract MasterICO is INV {
 
     using SafeMath for uint;
 
-    uint constant public ThresholdPercent = 10;
+    uint constant public FundingThresholdPercent = 20;
+    uint constant public CancellationThresholdPercent = 30;
     uint constant public MinimumDuration = 1 weeks;
 
-    uint canceled = 0;
+    uint constant NoneVote = 0;
+    uint constant YesVote = 1;
+    uint constant NoVote = 2;
+    uint constant AbstainedVote = 3;
+
+    uint public canceled = 0;
     mapping (uint => address) cancelVoteIdToAddress;
     uint cancelVotesCounter;
     mapping (address => uint8) addressToCancelVote;
@@ -44,11 +50,6 @@ contract Governance is INV {
     }
 
     Proposal[] public proposals;
-
-    uint constant NoneVote = 0;
-    uint constant YesVote = 1;
-    uint constant NoVote = 2;
-    uint constant AbstainedVote = 3;
 
     modifier notCanceled {
         require(canceled == 0);
@@ -118,7 +119,7 @@ contract Governance is INV {
         documentHash = proposals[_proposalId].reports[_reportId].documentHash;
     }
 
-    function vote(uint _proposalId, uint8 _vote) public hasBalance correctVote(_vote) notCanceled {
+    function vote(uint _proposalId, uint8 _vote) public notCanceled hasBalance correctVote(_vote) {
         require(now <= proposals[_proposalId].openingTime + proposals[_proposalId].durationTime);
 
         if (proposals[_proposalId].addressToVote[msg.sender] == NoneVote) {
@@ -147,11 +148,8 @@ contract Governance is INV {
         uint no;
         uint abstain;
         (yes, no, abstain) = currentProposalResults(_proposalId);
-
-        if (yes - no > (getTotalSupply() - abstain).mul(ThresholdPercent).div(100)) {
-            return true;
-        }
-        return false;
+        
+        return (yes - no) > (getTotalSupply() - abstain).mul(FundingThresholdPercent).div(100);
     }
 
     function getProposalFunds(uint _proposalId) public onlyOwner notCanceled {
@@ -171,7 +169,7 @@ contract Governance is INV {
         addressToCancelVote[msg.sender] = _cancelVote;
     }
 
-    function currentCancellationResults() public view returns(uint yes, uint no, uint abstain) {
+    function currentCancellationResults() public view notCanceled returns(uint yes, uint no, uint abstain) {
         for (uint i = 0; i < cancelVotesCounter; i = i.add(1)) {
             uint currentVote = addressToCancelVote[cancelVoteIdToAddress[i]];
             if (currentVote == YesVote) {
@@ -189,11 +187,11 @@ contract Governance is INV {
         uint no;
         uint abstain;
         (yes, no, abstain) = currentCancellationResults();
-        require(yes - no > (getTotalSupply() - abstain).mul(ThresholdPercent).div(100));
+        require((yes - no) > (getTotalSupply() - abstain).mul(CancellationThresholdPercent).div(100));
         canceled = now;
     }
 
-    function getRefun() public hasBalance {
+    function getRefund() public hasBalance {
         require(canceled != 0);
         msg.sender.transfer(address(this).balance.mul(balanceOf(msg.sender)).div(getTotalSupply()));
     }
