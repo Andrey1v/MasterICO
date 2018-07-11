@@ -15,10 +15,47 @@
     <title>MasterICO</title>
   </head>
   <body>
+    <div class="modal fade" id="create" tabindex="-1" role="dialog" aria-labelledby="createTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createLongTitle">Создать предложение</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+                <fieldset>
+                  <div class="form-group">
+                    <label for="proposalName">Название</label>
+                    <input type="text" class="form-control" id="proposalName" aria-describedby="proposalNameHelp">
+                    <small id="proposalNameHelp" class="form-text text-muted">Пожалуйста, используйте короткое название</small>
+                  </div>
+                  <div class="form-group">
+                    <label for="proposalVotingDuration">Срок голосования в днях</label>
+                    <input type="number" class="form-control" id="proposalVotingDuration">
+                    <small id="proposalVotingDurationHelp" class="form-text text-muted">Минимум 7 дней</small>
+                  </div>
+                  <div class="form-group">
+                    <label for="proposalOverview">Описание предложения</label>
+                    <input type="file" class="form-control-file" id="proposalOverview" aria-describedby="proposalOverviewHelp">
+                    <small id="proposalOverviewHelp" class="form-text text-muted">Вы не сможете удалить файл после отправки, но сможете отправить новый файл</small>
+                  </div>
+                </fieldset>
+              </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success">Создать</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
       <div class="container">
         <a href="index.html" class="navbar-brand">MasterICO</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarResponsive">
@@ -27,7 +64,7 @@
               <a class="nav-link" href="index.html">Главная</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="index.html">Создать предложение</a>
+              <a class="nav-link" href="#create" data-toggle="modal" data-target="#create">Создать предложение</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="index.html">Отмена проекта</a>
