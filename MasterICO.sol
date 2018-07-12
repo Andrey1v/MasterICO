@@ -5,10 +5,10 @@ pragma solidity ^0.4.24;
 // import "./Ownable.sol";
 // import "./SafeMath.sol";
 
-import "./INV.sol";
+import "./Crowdsale.sol";
 
 
-contract MasterICO is INV {
+contract MasterICO is Crowdsale {
 
     using SafeMath for uint;
 
@@ -29,7 +29,7 @@ contract MasterICO is INV {
     struct Document {
         uint date;
         string url;
-        uint documentHash;
+        string documentHash;
     }
 
     struct Proposal {
@@ -62,7 +62,7 @@ contract MasterICO is INV {
     }
 
     modifier hasBalance {
-        require(balanceOf(msg.sender) != 0);
+        require(token.balanceOf(msg.sender) != 0);
         _;
     }
 
@@ -80,7 +80,7 @@ contract MasterICO is INV {
         uint _durationTime,
         uint _requestedAmount,
         string _url,
-        uint _documentHash) public onlyOwner notCanceled
+        string _documentHash) public onlyOwner notCanceled
     {
         require(!checkProposalExistence(_name));
         require(_durationTime >= MinimumDuration);
@@ -89,7 +89,7 @@ contract MasterICO is INV {
         addOverview(proposalId, _url, _documentHash);
     }
 
-    function addOverview(uint _proposalId, string _url, uint _documentHash) public onlyOwner notCanceled {
+    function addOverview(uint _proposalId, string _url, string _documentHash) public onlyOwner notCanceled {
         proposals[_proposalId].overviews[proposals[_proposalId].overviewsCounter] = Document(now, _url, _documentHash);
         proposals[_proposalId].overviewsCounter = proposals[_proposalId].overviewsCounter.add(1);
     }
@@ -98,13 +98,13 @@ contract MasterICO is INV {
         return proposals[_proposalId].overviewsCounter;
     }
 
-    function getOverview(uint _proposalId, uint _overviewId) public view returns(uint date, string url, uint documentHash) {
+    function getOverview(uint _proposalId, uint _overviewId) public view returns(uint date, string url, string documentHash) {
         date = proposals[_proposalId].overviews[_overviewId].date;
         url = proposals[_proposalId].overviews[_overviewId].url;
         documentHash = proposals[_proposalId].overviews[_overviewId].documentHash;
     }
 
-    function addReport(uint _proposalId, string _url, uint _documentHash) public onlyOwner notCanceled {
+    function addReport(uint _proposalId, string _url, string _documentHash) public onlyOwner notCanceled {
         proposals[_proposalId].reports[proposals[_proposalId].reportsCounter] = Document(now, _url, _documentHash);
         proposals[_proposalId].reportsCounter = proposals[_proposalId].reportsCounter.add(1);
     }
@@ -113,7 +113,7 @@ contract MasterICO is INV {
         return proposals[_proposalId].reportsCounter;
     }
 
-    function getReport(uint _proposalId, uint _reportId) public view returns(uint date, string url, uint documentHash) {
+    function getReport(uint _proposalId, uint _reportId) public view returns(uint date, string url, string documentHash) {
         date = proposals[_proposalId].reports[_reportId].date;
         url = proposals[_proposalId].reports[_reportId].url;
         documentHash = proposals[_proposalId].reports[_reportId].documentHash;
@@ -134,11 +134,11 @@ contract MasterICO is INV {
         for (uint i = 0; i < proposals[_proposalId].votesCounter; i = i.add(1)) {
             uint currentVote = proposals[_proposalId].addressToVote[proposals[_proposalId].voteIdToAddress[i]];
             if (currentVote == YesVote) {
-                yes = yes.add(balanceOf(msg.sender));
+                yes = yes.add(token.balanceOf(msg.sender));
             } else if (currentVote == NoVote) {
-                no = no.add(balanceOf(msg.sender));
+                no = no.add(token.balanceOf(msg.sender));
             } else if (currentVote == AbstainedVote) {
-                abstain = abstain.add(balanceOf(msg.sender));
+                abstain = abstain.add(token.balanceOf(msg.sender));
             }
         }
     }
@@ -149,7 +149,7 @@ contract MasterICO is INV {
         uint abstain;
         (yes, no, abstain) = currentProposalResults(_proposalId);
         
-        return (yes - no) > (getTotalSupply() - abstain).mul(FundingThresholdPercent).div(100);
+        return (yes - no) > (token.getTotalSupply() - abstain).mul(FundingThresholdPercent).div(100);
     }
 
     function getProposalFunds(uint _proposalId) public onlyOwner notCanceled {
@@ -158,6 +158,10 @@ contract MasterICO is INV {
         require(address(this).balance >= proposals[_proposalId].requestedAmount);
 
         owner.transfer(proposals[_proposalId].requestedAmount);
+    }
+
+    function getProposalsLength() public view returns (uint proposalsLength) {
+        return proposals.length;
     }
 
     function cancelVote(uint8 _cancelVote) public hasBalance correctVote(_cancelVote) {
@@ -173,11 +177,11 @@ contract MasterICO is INV {
         for (uint i = 0; i < cancelVotesCounter; i = i.add(1)) {
             uint currentVote = addressToCancelVote[cancelVoteIdToAddress[i]];
             if (currentVote == YesVote) {
-                yes = yes.add(balanceOf(msg.sender));
+                yes = yes.add(token.balanceOf(msg.sender));
             } else if (currentVote == NoVote) {
-                no = no.add(balanceOf(msg.sender));
+                no = no.add(token.balanceOf(msg.sender));
             } else if (currentVote == AbstainedVote) {
-                abstain = abstain.add(balanceOf(msg.sender));
+                abstain = abstain.add(token.balanceOf(msg.sender));
             }
         }
     }
@@ -187,12 +191,12 @@ contract MasterICO is INV {
         uint no;
         uint abstain;
         (yes, no, abstain) = currentCancellationResults();
-        require((yes - no) > (getTotalSupply() - abstain).mul(CancellationThresholdPercent).div(100));
+        require((yes - no) > (token.getTotalSupply() - abstain).mul(CancellationThresholdPercent).div(100));
         canceled = now;
     }
 
     function getRefund() public hasBalance {
         require(canceled != 0);
-        msg.sender.transfer(address(this).balance.mul(balanceOf(msg.sender)).div(getTotalSupply()));
+        msg.sender.transfer(address(this).balance.mul(token.balanceOf(msg.sender)).div(token.getTotalSupply()));
     }
 }
