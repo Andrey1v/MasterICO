@@ -62,8 +62,16 @@ contract MasterICO is Crowdsale {
     }
 
     modifier hasBalance {
-        require(token.balanceOf(msg.sender) != 0);
+        require(balanceOf(msg.sender) != 0);
         _;
+    }
+
+    function getTotalSupply() public view returns(uint totalSupply) {
+        return token.getTotalSupply();
+    }
+
+    function balanceOf(address _address) public view returns(uint balance) {
+        return token.balanceOf(_address);
     }
 
     function checkProposalExistence(string _name) public view returns(bool exist) {
@@ -134,11 +142,11 @@ contract MasterICO is Crowdsale {
         for (uint i = 0; i < proposals[_proposalId].votesCounter; i = i.add(1)) {
             uint currentVote = proposals[_proposalId].addressToVote[proposals[_proposalId].voteIdToAddress[i]];
             if (currentVote == YesVote) {
-                yes = yes.add(token.balanceOf(msg.sender));
+                yes = yes.add(balanceOf(msg.sender));
             } else if (currentVote == NoVote) {
-                no = no.add(token.balanceOf(msg.sender));
+                no = no.add(balanceOf(msg.sender));
             } else if (currentVote == AbstainedVote) {
-                abstain = abstain.add(token.balanceOf(msg.sender));
+                abstain = abstain.add(balanceOf(msg.sender));
             }
         }
     }
@@ -149,7 +157,7 @@ contract MasterICO is Crowdsale {
         uint abstain;
         (yes, no, abstain) = currentProposalResults(_proposalId);
         
-        return (yes - no) > (token.getTotalSupply() - abstain).mul(FundingThresholdPercent).div(100);
+        return (yes - no) > (getTotalSupply() - abstain).mul(FundingThresholdPercent).div(100);
     }
 
     function getProposalFunds(uint _proposalId) public onlyOwner notCanceled {
@@ -177,11 +185,11 @@ contract MasterICO is Crowdsale {
         for (uint i = 0; i < cancelVotesCounter; i = i.add(1)) {
             uint currentVote = addressToCancelVote[cancelVoteIdToAddress[i]];
             if (currentVote == YesVote) {
-                yes = yes.add(token.balanceOf(msg.sender));
+                yes = yes.add(balanceOf(msg.sender));
             } else if (currentVote == NoVote) {
-                no = no.add(token.balanceOf(msg.sender));
+                no = no.add(balanceOf(msg.sender));
             } else if (currentVote == AbstainedVote) {
-                abstain = abstain.add(token.balanceOf(msg.sender));
+                abstain = abstain.add(balanceOf(msg.sender));
             }
         }
     }
@@ -191,12 +199,12 @@ contract MasterICO is Crowdsale {
         uint no;
         uint abstain;
         (yes, no, abstain) = currentCancellationResults();
-        require((yes - no) > (token.getTotalSupply() - abstain).mul(CancellationThresholdPercent).div(100));
+        require((yes - no) > (getTotalSupply() - abstain).mul(CancellationThresholdPercent).div(100));
         canceled = now;
     }
 
     function getRefund() public hasBalance {
         require(canceled != 0);
-        msg.sender.transfer(address(this).balance.mul(token.balanceOf(msg.sender)).div(token.getTotalSupply()));
+        msg.sender.transfer(address(this).balance.mul(balanceOf(msg.sender)).div(getTotalSupply()));
     }
 }
