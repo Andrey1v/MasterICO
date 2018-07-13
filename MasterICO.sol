@@ -142,11 +142,11 @@ contract MasterICO is Crowdsale {
         for (uint i = 0; i < proposals[_proposalId].votesCounter; i = i.add(1)) {
             uint currentVote = proposals[_proposalId].addressToVote[proposals[_proposalId].voteIdToAddress[i]];
             if (currentVote == YesVote) {
-                yes = yes.add(balanceOf(msg.sender));
+                yes = yes.add(balanceOf(proposals[_proposalId].voteIdToAddress[i]));
             } else if (currentVote == NoVote) {
-                no = no.add(balanceOf(msg.sender));
+                no = no.add(balanceOf(proposals[_proposalId].voteIdToAddress[i]));
             } else if (currentVote == AbstainedVote) {
-                abstain = abstain.add(balanceOf(msg.sender));
+                abstain = abstain.add(balanceOf(proposals[_proposalId].voteIdToAddress[i]));
             }
         }
     }
@@ -185,11 +185,11 @@ contract MasterICO is Crowdsale {
         for (uint i = 0; i < cancelVotesCounter; i = i.add(1)) {
             uint currentVote = addressToCancelVote[cancelVoteIdToAddress[i]];
             if (currentVote == YesVote) {
-                yes = yes.add(balanceOf(msg.sender));
+                yes = yes.add(balanceOf(cancelVoteIdToAddress[i]));
             } else if (currentVote == NoVote) {
-                no = no.add(balanceOf(msg.sender));
+                no = no.add(balanceOf(cancelVoteIdToAddress[i]));
             } else if (currentVote == AbstainedVote) {
-                abstain = abstain.add(balanceOf(msg.sender));
+                abstain = abstain.add(balanceOf(cancelVoteIdToAddress[i]));
             }
         }
     }
