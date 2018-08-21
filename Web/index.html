@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://bootswatch.com/4/cosmo/bootstrap.min.css">
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="style.css">
+
+	<script src="./js/masterICO.js"></script> <!--m-->
+	<script src="./js/masterICO_index.js"></script> <!--m-->
+	<script src="./js/sjcl.js"></script>
+    <script src="./js/base64js.js"></script>
+    <title>MasterICO</title>
+  </head>
+  <body>
+    <div class="modal fade" id="create" tabindex="-1" role="dialog" aria-labelledby="createTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createLongTitle">Создать предложение</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <fieldset>
+                <div class="form-group">
+                  <label for="proposalName">Название</label>
+                  <input type="text" class="form-control" id="aProposalName" aria-describedby="proposalNameHelp">
+                  <small id="proposalNameHelp" class="form-text text-muted">Пожалуйста, используйте короткое название</small>
+                </div>
+                <div class="form-group">
+                  <label for="proposalVotingDuration">Срок голосования в днях</label>
+                  <input type="number" class="form-control" id="aProposalVotingDuration">
+                  <small id="proposalVotingDurationHelp" class="form-text text-muted">Минимум 7 дней</small>
+                </div>
+                <div class="form-group">
+                  <label for="proposalRequestedAmount">Сумма финансирования</label>
+                  <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text">Ξ</span>
+                    </div>
+                    <input type="text" class="form-control" id="aProposalRequestedAmount">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="proposalOverview">Описание предложения</label>
+                  <input type="file" class="form-control-file" id="proposalOverview" aria-describedby="proposalOverviewHelp">
+                  <small id="proposalOverviewHelp" class="form-text text-muted">Вы не сможете удалить файл после отправки, но сможете отправить новый файл</small>
+                </div>
+              </fieldset>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" onclick="addProposal();">Создать</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
+      <div class="container">
+        <a href="index.html" class="navbar-brand">MasterICO</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="index.html">Главная</a>
+            </li>
+            <li class="nav-item" style="display:none" id="onlyOwnerCreateProposle">
+              <a class="nav-link" href="#create" data-toggle="modal" data-target="#create">Создать предложение</a>
+            </li>
+            <li class="nav-item" id="notOwnerCancel">
+              <a class="nav-link" href="#cancelVote" onclick="cancelVote();">Отмена проекта</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="bs-docs-section">
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="page-header">
+              <h1>MasterICO</h1>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="bs-component">
+              <div class="card text-white bg-success mb-3" style="max-width: 20rem;">
+                <div class="card-header">Финансирование</div>
+                <div class="card-body">
+                  <h1>Ξ103,291.93</h1>
+                  <h4 class="card-title">$51,645,965.00</h4>
+                  <p class="card-text">Эти средства используются для финансирования разработки через систему предложений.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="bs-component">
+              <div class="card text-white bg-info mb-3" style="max-width: 20rem;">
+                <div class="card-header">Предложения</div>
+                <div class="card-body">
+                  <h1 id="dSumRequested">Ξ0.00</h1>
+                  <h4 class="card-title" id="dSumRequestedUSD">$0.00</h4>
+                  <p class="card-text" id="dProposalCount">Командой проекта запрошено финансирование 0 предложений на данную сумму.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="bs-component">
+              <div class="card text-white bg-warning mb-3" style="max-width: 20rem;">
+                <div class="card-header">Токены</div>
+                <div class="card-body">
+                  <h1 id="dTotalSupply">0,00 INV</h1>
+                  <h4 class="card-title" id="dTotalSupplyUSD" >$0,00</h4>
+                  <p class="card-text">Вес голоса каждого адреса прямо пропорционален количеству токенов на этом адресе.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bs-docs-section">
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="page-header">
+              <h1>Предложения</h1>
+            </div>
+
+            <div class="bs-component">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Название</th>
+                    <th scope="col">Дата</th>
+                    <th scope="col">Запрашиваемая сумма</th>
+                    <th scope="col">Голоса (за / против)</th>
+                  </tr>
+                </thead>
+                <tbody id="genTbody">
+                  <tr class="table-success">
+                    <th scope="row">
+                      <a href="#" target="_blank" style="color: #373a3c;">Выпуск обновления для Masterchain</a>
+                    </th>
+                    <td>05.06.2018 — 15.06.2018</td>
+                    <td>Ξ1,839.93</td>
+                    <td>40328 / 0</td>
+                  </tr>
+                  <tr class="table-danger">
+                    <th scope="row">
+                      <a href="#" target="_blank" style="color: #373a3c;">Рекламное видео</a>
+                    </th>
+                    <td>19.05.2018 — 19.05.2018</td>
+                    <td>Ξ843.42</td>
+                    <td>6392 / 25460</td>
+                  </tr>
+                  <tr class="table-success">
+                    <th scope="row">
+                      <a href="#" target="_blank" style="color: #373a3c;">Разработка смарт-контрактов</a>
+                    </th>
+                    <td>10.05.2018 — 10.05.2018</td>
+                    <td>Ξ743.91</td>
+                    <td>32049 / 4043</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+<script>
+	document.addEventListener('IsInitialized', function(e){
+	  initIndex();
+	}, false);
+	
+	initEth();
+	</script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+  </body>
+</html>

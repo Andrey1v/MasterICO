@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://bootswatch.com/4/cosmo/bootstrap.min.css">
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="style.css">
+
+	<script src="./js/masterICO.js"></script> <!--m-->
+	<script src="./js/masterICO_proposal.js"></script> <!--m-->
+	<script src="./js/sjcl.js"></script>
+    <script src="./js/base64js.js"></script>
+	<script src="./js/download.js"></script>
+    <title>MasterICO</title>
+  </head>
+  <body>
+    <div class="modal fade" id="create" tabindex="-1" role="dialog" aria-labelledby="createTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createLongTitle">Создать предложение</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <fieldset>
+                <div class="form-group">
+                  <label for="proposalName">Название</label>
+                  <input type="text" class="form-control" id="aProposalName" aria-describedby="proposalNameHelp">
+                  <small id="proposalNameHelp" class="form-text text-muted">Пожалуйста, используйте короткое название</small>
+                </div>
+                <div class="form-group">
+                  <label for="proposalVotingDuration">Срок голосования в днях</label>
+                  <input type="number" class="form-control" id="aProposalVotingDuration">
+                  <small id="proposalVotingDurationHelp" class="form-text text-muted">Минимум 7 дней</small>
+                </div>
+                <div class="form-group">
+                  <label for="proposalRequestedAmount">Сумма финансирования</label>
+                  <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text">Ξ</span>
+                    </div>
+                    <input type="text" class="form-control" id="aProposalRequestedAmount">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="proposalOverview">Описание предложения</label>
+                  <input type="file" class="form-control-file" id="proposalOverview" aria-describedby="proposalOverviewHelp">
+                  <small id="proposalOverviewHelp" class="form-text text-muted">Вы не сможете удалить файл после отправки, но сможете отправить новый файл</small>
+                </div>
+              </fieldset>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" onclick="addProposal();">Создать</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+        <div class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
+          <div class="container">
+            <a href="index.html" class="navbar-brand">MasterICO</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+              <ul class="navbar-nav">
+                <li class="nav-item">
+                  <a class="nav-link" href="index.html">Главная</a>
+                </li>
+                <li class="nav-item" style="display:none" id="onlyOwnerCreateProposle">
+                  <a class="nav-link" href="#create" data-toggle="modal" data-target="#create">Создать предложение</a>
+                </li>
+                <li class="nav-item" id="notOwnerCancel">
+                  <a class="nav-link" href="#cancelVote" onclick="cancelVote();">Отмена проекта</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+    <div class="container">
+
+      <div class="bs-docs-section">
+        <div class="row">
+          <div class="col-lg-7">
+
+            <div class="page-header">
+              <h1 id="_name">Название предложения</h1>
+            </div>
+
+            <div class="bs-component">
+              <table class="table table-hover">
+                <tbody>
+                  <tr>
+                    <th scope="row">Дата публикации</th>
+                    <td id="_openingTime">—</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Длительность голосования</th>
+                    <td id="_duringTime">0 дней</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Окончание голосования</th>
+                    <td id="_closingTime">—</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Запрошенная сумма</th>
+                    <td id="_requestAmount">Ξ0,00</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Голосов за</th>
+                    <td id="_yes">0 TKN</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Голосов против</th>
+                    <td id="_no">0 TKN</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Воздержались от голосования</th>
+                    <td id="_abstain">0 TKN</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="bs-docs-section" id="VoteBlock">
+              <div class="btn-group" role="group" style="width: 100%;">
+                <button type="button" class="btn btn-success" style="width: 33.33%;" onclick="vote(1);">За</button>
+                <button type="button" class="btn btn-danger" style="width: 33.33%;" onclick="vote(2);">Против</button>
+                <button type="button" class="btn btn-info" style="width: 33.33%;" onclick="vote(3);">Воздержаться</button>
+              </div>
+            </div>
+
+            <div class="bs-docs-section">
+              <button type="button" class="btn btn-success" style="width: 100%;" id="onlyOwnerFin" onclick="getProposalFunds()">Перевести финансирование</button>
+            </div>
+
+          </div>
+
+          <div class="col-lg-1"></div>
+
+          <div class="col-lg-4">
+            <div class="page-header">
+              <h1>Обзор</h1>
+            </div>
+
+            <div class="bs-component">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Файл</th>
+                    <th scope="col">Дата</th>
+                  </tr>
+                </thead>
+                <tbody id="overviewTbody"> <!--m-->
+                  
+                </tbody>
+              </table>
+            </div>
+
+            <div class="bs-docs-section" id="onlyOwnerAddOverview">
+			  <!-- <input type="file" class="form-control-file" id="addProposalOverview" aria-describedby="proposalOverviewHelp">
+              <button type="button" class="btn btn-success" style="width: 100%;" onclick="addOverview()">Добавить файл</button> -->
+				<label class="btn btn-success" style="width: 100%;">Добавить файл
+				<input style="display:none;" type="file" class="form-control-file" id="addProposalOverview" onclick="document.getElementById('addProposalOverview').value = ''" onchange="addOverview();" aria-describedby="proposalOverviewHelp">
+              
+			  </label>
+			</div>
+
+            <div class="page-header">
+              <h1>Отчеты</h1>
+            </div>
+
+            <div class="bs-component">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Файл</th>
+                    <th scope="col">Дата</th>
+                  </tr>
+                </thead>
+                <tbody id="reportTbody">
+                  
+                </tbody>
+              </table>
+            </div>
+
+            <div class="bs-docs-section" id="onlyOwnerAddReport">
+              <!-- <input type="file" class="form-control-file" id="addProposalReport" aria-describedby="proposalOverviewHelp">
+              <button type="button" class="btn btn-success" style="width: 100%;" onclick="addReport()">Добавить файл</button>  -->
+			  <label class="btn btn-success" style="width: 100%;">Добавить файл
+				<input style="display:none;" type="file" class="form-control-file" id="addProposalReport" onclick="document.getElementById('addProposalReport').value = ''" onchange="addReport();" aria-describedby="proposalOverviewHelp">
+              
+			  </label>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+	<script>
+	document.addEventListener('IsInitialized', function(e){
+	  initProposal();
+	}, false);
+		
+	document.getElementById("onlyOwnerFin").style.display         		= "none";
+	document.getElementById("onlyOwnerAddOverview").style.display 		= "none";	
+	document.getElementById("onlyOwnerAddReport").style.display   		= "none";	
+	document.getElementById("onlyOwnerCreateProposle").style.display   	= "none";		
+	
+	document.getElementById("VoteBlock").style.display = "block";	
+	
+	initEth();
+	</script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+  </body>
+</html>
